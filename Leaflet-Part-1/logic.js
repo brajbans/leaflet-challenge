@@ -12,14 +12,71 @@ function createFeatures(earthquakeData) {
   // Define a function that we want to run once for each feature in the features array.
   // Give each feature a popup that describes the place and time of the earthquake.
   function onEachFeature(feature, layer) {
-    layer.bindPopup("Location: " + feature.properties.place + "<br>Magnitude: " + feature.properties.mag + "<br>More Info: " + feature.properties.url);
+    layer.bindPopup("Location: " + feature.properties.place + "<br>Magnitude: " + feature.properties.mag + "<br>More Info " + feature.properties.url);
   }
 
+
+  
   // Create a GeoJSON layer that contains the features array on the earthquakeData object.
   // Run the onEachFeature function once for each piece of data in the array.
+
+  function createCircle(feature, latlng){
+    let depth = {
+      radius:feature.properties.mag*4,
+      fillColor: chooseColor(feature.properties.mag),
+      color: chooseColor(feature.properties.mag),
+      weight: 1,
+      opacity: 0.75,
+      fillOpacity: 0.4
+    }
+    return L.circleMarker(latlng, depth);
+  }
+
+
+
   let earthquakes = L.geoJSON(earthquakeData, {
-    onEachFeature: onEachFeature
+    onEachFeature: onEachFeature,
+    pointToLayer: createCircle
   });
+
+  // Function to choose color of cirlces for Map Plot based on Magnitude
+//Passes to CreateCircleMarker function above
+function chooseColor(mag) {
+  // console.log(mag)
+  switch(true) {
+      //case (0 <= mag && mag < 1.0):
+        //return "#aliceblue";
+      case (1.0 <= mag && mag <= 2.5):
+        return "#FF33F3";
+      case (2.5 <= mag && mag <= 4.0):
+        return "#33FFF3";
+      case (4.0 <= mag && mag <= 5.5):
+        return "#FFFC33";
+      case (5.5 <= mag && mag <= 7.0):
+        return "#FFAF33";
+      case (7.0 <= mag && mag <= 15.0):
+        return "#FF3333";
+      default:
+        return "#E2FFAE";
+  }
+}
+
+var legend = L.control({position: 'bottomleft'});
+
+legend.onAdd = function (map) {
+    var div = L.Magnitude.create('div', 'info legend'),
+        grades = [1.0, 2.5, 4.0, 5.5, 7.0],
+        labels = [];
+
+    // loop through our density intervals and generate a label with a colored square for each interval
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + chooseColor(grades[i] + 1) + '"></i> ' +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+    return div;
+};
+
 
   // Send our earthquakes layer to the createMap function/
   createMap(earthquakes);
@@ -62,5 +119,6 @@ function createMap(earthquakes) {
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
+  legend.addTo(myMap);
 
 }
