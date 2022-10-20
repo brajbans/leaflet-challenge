@@ -123,4 +123,4 @@ legend.onAdd = function (map) {
   }).addTo(myMap);
   legend.addTo(myMap);
 
-}
+};
