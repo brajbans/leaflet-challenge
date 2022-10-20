@@ -12,7 +12,7 @@ function createFeatures(earthquakeData) {
   // Define a function that we want to run once for each feature in the features array.
   // Give each feature a popup that describes the place and time of the earthquake.
   function onEachFeature(feature, layer) {
-    layer.bindPopup("Location: " + feature.properties.place + "<br>Magnitude: " + feature.properties.mag + "<br>More Info " + feature.properties.url);
+    layer.bindPopup("Location: " + feature.properties.place + "<br>Date: " + new Date(feature.properties.time) + "<br>Magnitude: " + feature.properties.mag + "<br>More Info " + feature.properties.url);
   }
 
 
@@ -61,22 +61,6 @@ function chooseColor(mag) {
   }
 }
 
-var legend = L.control({position: 'bottomleft'});
-
-legend.onAdd = function (map) {
-    var div = L.Magnitude.create('div', 'info legend'),
-        grades = [1.0, 2.5, 4.0, 5.5, 7.0],
-        labels = [];
-
-    // loop through our density intervals and generate a label with a colored square for each interval
-    for (var i = 0; i < grades.length; i++) {
-        div.innerHTML +=
-            '<i style="background:' + chooseColor(grades[i] + 1) + '"></i> ' +
-            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
-    }
-    return div;
-};
-
 
   // Send our earthquakes layer to the createMap function/
   createMap(earthquakes);
@@ -112,6 +96,24 @@ function createMap(earthquakes) {
     zoom: 2.5,
     layers: [street, earthquakes]
   });
+
+var legend = L.control({position: 'bottomleft'});
+
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend'),
+        grades = [1.0, 2.5, 4.0, 5.5, 7.0],
+        labels = [];
+
+    // loop through our density intervals and generate a label with a colored square for each interval
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + chooseColor(grades[i] + 1) + '"></i> ' +
+            grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+    }
+    return div;
+};
+
+
 
   // Create a layer control.
   // Pass it our baseMaps and overlayMaps.
