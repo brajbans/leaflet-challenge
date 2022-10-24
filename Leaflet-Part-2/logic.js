@@ -150,6 +150,7 @@ let plates = L.geoJSON(platesData, {
     return div;
   };
 
+    
   legend.addTo(myMap);
   L.control.layers(baseMaps, overlayMaps).addTo(myMap);
 };
