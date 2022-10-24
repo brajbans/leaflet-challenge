@@ -1,20 +1,22 @@
-// Store our API endpoint as earthquakeUrl.
+// Store our API endpoint as earthquakeUrl and file for the platesUrl
 let earthquakesUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+let platesUrl = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json"
 
-// Perform a GET request to the earthquake URL/
-d3.json(earthquakesUrl).then(function (data) {
+// Perform a GET request to the earthquake & plates URL
+d3.json(earthquakesUrl).then(function (earthquakeData){
+  d3.json(platesUrl).then(function(platesData) {
   // Once we get a response, send the data.features object to the createFeatures function.
-  createFeatures(data.features);
+  createFeatures(earthquakeData.features, platesData.features)
+});
 });
 
-function createFeatures(earthquakeData) {
+function createFeatures(earthquakeData, platesData) {
 
   // Define a function that we want to run once for each feature in the features array.
   // Give each feature a popup that describes the place and time of the earthquake.
   function onEachFeature(feature, layer) {
     layer.bindPopup("Location: " + feature.properties.place + "<br>Date: " + new Date(feature.properties.time) + "<br>Magnitude: " + feature.properties.mag + "<br>More Info " + feature.properties.url);
   }
-
 
   
   // Create a GeoJSON layer that contains the features array on the earthquakeData object.
@@ -32,8 +34,7 @@ function createFeatures(earthquakeData) {
     return L.circleMarker(latlng, depth);
   }
 
-
-
+  
   let earthquakes = L.geoJSON(earthquakeData, {
     onEachFeature: onEachFeature,
     pointToLayer: createCircle
@@ -61,12 +62,21 @@ function chooseColor(mag) {
   }
 };
 
+let plates = L.geoJSON(platesData, {
+  style: function() {
+    return {
+      color: "green",
+      weight: 1.2
+    }
+  }
+
+});
 
   // Send our earthquakes layer to the createMap function/
-  createMap(earthquakes);
-}
+  createMap(earthquakes, plates);
+};
 
-function createMap(earthquakes) {
+  function createMap(earthquakes, plates) {
 
   // Create the base layers.
   let street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -85,7 +95,8 @@ function createMap(earthquakes) {
 
   // Create an overlay object to hold our overlay.
   let overlayMaps = {
-    Earthquakes: earthquakes
+    Earthquakes: earthquakes,
+    TectonicPlates: plates
   };
 
   // Create our map, giving it the streetmap and earthquakes layers to display on load.
@@ -94,7 +105,7 @@ function createMap(earthquakes) {
       17.6078, -8.0817
     ],
     zoom: 2.5,
-    layers: [street, earthquakes]
+    layers: [street, earthquakes, plates]
   });
 
   // Set up the legend.
@@ -139,13 +150,6 @@ function createMap(earthquakes) {
     return div;
   };
 
-
-  // Create a layer control.
-  // Pass it our baseMaps and overlayMaps.
-  // Add the layer control to the map.
-  L.control.layers(baseMaps, overlayMaps, {
-    collapsed: false
-  }).addTo(myMap);
   legend.addTo(myMap);
-
-}
+  L.control.layers(baseMaps, overlayMaps).addTo(myMap);
+};
