@@ -148,4 +148,4 @@ function createMap(earthquakes) {
   }).addTo(myMap);
   legend.addTo(myMap);
 
-}
+};
